@@ -89,10 +89,46 @@ void _power_density_correction(cell_t c, Thread *t, real powerLevel)
 }
 
 
-real _max_coolant_temperature_calc()
+real _max_coolant_temperature_calc(Domain *domain)
 {
+	Thread *t;
+	cell_t c;
+	real _max_coolant_temperature;
+	real _fuel_surface_temperature;
+	real _heat_transfer_coefficient;
+	real _volume_power_rate;
+	real _fuel_ball_power;
+	real _porosity;
+	real _volume_fuel_ball;
+	real _coolant_velocity;
 
-	return 0;
+	t = Lookup_Thread(domain, 17);
+	_max_coolant_temperature = 0.;
+	_fuel_surface_temperature = 0.;
+	_heat_transfer_coefficient = 0.;
+	_volume_power_rate = 0.;
+	_fuel_ball_power = 0.;
+	_porosity = 0.3194;
+	_volume_fuel_ball = 4./3.*3.1415926*pow(0.03,3);
+	_coolant_velocity = 0.;
+
+	begin_c_loop(c,t)
+	{
+		_volume_power_rate = C_UDMI(c,t,0);
+		_fuel_ball_power = _volume_power_rate*_volume_fuel_ball/(1.-_porosity);
+		_coolant_velocity = pow(C_U(c,t),2.) + pow(C_V(c,t),2.) + pow(C_W(c,t),2.);
+		_coolant_velocity = pow(_coolant_velocity, 0.5);
+		_heat_transfer_coefficient = \
+			_heat_transfer_coefficient_calc(C_T(c,t), _coolant_velocity);
+
+		_fuel_surface_temperature = C_T(c,t) + \
+			_fuel_ball_power/(3.14159*0.06*0.06*_heat_transfer_coefficient);
+
+		if(_fuel_surface_temperature > _max_coolant_temperature)
+			_max_coolant_temperature = _fuel_surface_temperature;
+	}end_c_loop(c,t)
+
+	return _max_coolant_temperature;
 }
 
 real _max_fuel_temperature_calc()
@@ -114,15 +150,14 @@ real _coolant_Density(real T)
 {
 	real Density;
 	T = T-273.15;         /* Transfer to Celsius Degree */
-	Density = 2.280-0.000448*T;
+	Density = 2413.-0.4884*T;
 	return Density;       /* The unit is kg*m^-3 */
 }
 
 real _coolant_Viscosity(real T)
 {
 	real Viscosity;
-	T = T-273.15;         /* Transfer to Celsius Degree */
-	Viscosity = 0.0116*exp(3755.0/T);
+	Viscosity = 1.16e-4*exp(3755.0/T);
 	return Viscosity;     /* The unit is Pa*s */
 }
 
@@ -139,10 +174,36 @@ real _graphite_Conductivity(real T)
 	real Conductivity;
 	real DOSIS;
 	T = T-273.15;         /* Transfer to Celsius Degree */
+	DOSIS = 1021.;
 	Conductivity = (-0.3906e-4*T+0.06829)/(DOSIS+1.931e-4*T);
 	Conductivity = Conductivity + 1.228e-4*T + 0.042;
 	Conductivity = Conductivity * 1.2768e2;
 	return Conductivity;
+}
+
+real _heat_transfer_coefficient_calc(real T, real v)
+{
+	real _Re;
+	real _Pr;
+	real _length;
+	real _coefficient;
+	real _capacity;
+	real _density;
+	real _viscosity;
+	real _conductivity;
+
+	_length = 0.06;
+	_capacity     = _coolant_HeatCapacity(T);
+	_density      = _coolant_Density(T);
+	_viscosity    = _coolant_Viscosity(T);
+	_conductivity = _coolant_Conductivity(T);
+
+	_Re = _density*v*_length/_viscosity;
+	_Pr = _viscosity*_capacity/_conductivity;
+
+	_coefficient = (2+1.1*pow(_Re,0.6)*pow(_Pr,0.333))*_conductivity/_length;
+
+	return _coefficient;
 }
 
 

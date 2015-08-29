@@ -13,7 +13,7 @@ void _set_power_for_each_cell(cell_t c, Thread *t);
 void _power_density_correction(cell_t c, Thread *t, real powerLevel);
 
 
-real _max_coolant_temperature_calc();
+real _max_coolant_temperature_calc(Domain *domain);
 
 real _max_fuel_temperature_calc();
 
@@ -24,5 +24,6 @@ real _coolant_Viscosity(real T);
 real _coolant_Conductivity(real T);
 real _graphite_Conductivity(real T);
 
+real _heat_transfer_coefficient_calc(real T, real v);
 
 #endif

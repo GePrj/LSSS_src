@@ -44,8 +44,10 @@ DEFINE_INIT(initialization,d)
 DEFINE_ADJUST(myAdjust,d)
 {
 
-	_max_coolant_temperature = _max_coolant_temperature_calc();
+	_max_coolant_temperature = _max_coolant_temperature_calc(d);
 	_max_fuel_temperature    = _max_fuel_temperature_calc();
+
+	Message("The max coolant temperature is %f\n",_max_coolant_temperature);
 }
 
 DEFINE_SOURCE(energy_source,c,t,dS,eqn)
