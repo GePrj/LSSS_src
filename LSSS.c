@@ -15,14 +15,25 @@ DEFINE_INIT(initialization,d)
 
 	if(RP_Variable_Exists_P("total_power"))
 	{
-		Message("The variable total_power is already defined as %f\n",\
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+		 * Defining the total_power variable in FLUENT console
+		 * (rp-var-define 'total_power 10 'real #f)
+		 *
+		 * Changing the total_power variable in FLUENT console
+		 * (rpsetvar 'total_power 12)
+		 *
+		 * Accessing the total_power variable in FLUENT console
+		 * (%rpgetvar 'total_power)
+		 *
+		 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		Message("The variable total_power is already defined as %5.2fMW\n",\
 						RP_Get_Real("total_power"));
 		_powerLevel = RP_Get_Real("total_power");
 	}
 	else
 	{
-		Message("The variable total_power is not defined !");
-		Message("So the default power Level is defined as 2MW");
+		Message("The variable total_power is not defined !\n");
+		Message("So the default power Level is defined as 2MW\n");
 		_powerLevel = 2.0;
 		/* The default power is 2MW. */
 	}
@@ -78,7 +89,8 @@ DEFINE_ON_DEMAND(hehe)
 		testValue2 += C_VOLUME(c,t)*C_UDMI(c,t,0);
 	}end_c_loop(c,t)
 
-	Message("%f\n%f\n%f\n",testValue,testValue1,testValue2);
+	Message("Total_Volume=%f\nTotal_PowerPerVolume=%f\nTotal_Power=%f\n\n",\
+			testValue,testValue1,testValue2);
 
 	if(RP_Variable_Exists_P("gejian"))
 	{
