@@ -92,12 +92,59 @@ void _power_density_correction(cell_t c, Thread *t, real powerLevel)
 real _max_coolant_temperature_calc()
 {
 
+	return 0;
 }
 
 real _max_fuel_temperature_calc()
 {
 
+	return 0;
 }
+
+
+real _coolant_HeatCapacity(real T)
+{
+	real HeatCapacity;
+	T = T-273.15;         /* Transfer to Celsius Degree */
+	HeatCapacity = 2414.0;
+	return HeatCapacity;  /* The unit is J*kg^-1*K^-1 */
+}
+
+real _coolant_Density(real T)
+{
+	real Density;
+	T = T-273.15;         /* Transfer to Celsius Degree */
+	Density = 2.280-0.000448*T;
+	return Density;       /* The unit is kg*m^-3 */
+}
+
+real _coolant_Viscosity(real T)
+{
+	real Viscosity;
+	T = T-273.15;         /* Transfer to Celsius Degree */
+	Viscosity = 0.0116*exp(3755.0/T);
+	return Viscosity;     /* The unit is Pa*s */
+}
+
+real _coolant_Conductivity(real T)
+{
+	real Conductivity;
+	T = T-273.15;         /* Transfer to Celsius Degree */
+	Conductivity = 1.0;
+	return Conductivity;  /* The unit is W*m^-1*K^-1 */
+}
+
+real _graphite_Conductivity(real T)
+{
+	real Conductivity;
+	real DOSIS;
+	T = T-273.15;         /* Transfer to Celsius Degree */
+	Conductivity = (-0.3906e-4*T+0.06829)/(DOSIS+1.931e-4*T);
+	Conductivity = Conductivity + 1.228e-4*T + 0.042;
+	Conductivity = Conductivity * 1.2768e2;
+	return Conductivity;
+}
+
 
 
 

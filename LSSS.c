@@ -15,11 +15,14 @@ DEFINE_INIT(initialization,d)
 
 	if(RP_Variable_Exists_P("total_power"))
 	{
+		Message("The variable total_power is already defined as %f\n",\
+						RP_Get_Real("total_power"));
 		_powerLevel = RP_Get_Real("total_power");
 	}
 	else
 	{
-		Message("The variable total_power is not defined ! \n");
+		Message("The variable total_power is not defined !");
+		Message("So the default power Level is defined as 2MW");
 		_powerLevel = 2.0;
 		/* The default power is 2MW. */
 	}

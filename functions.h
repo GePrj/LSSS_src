@@ -18,6 +18,11 @@ real _max_coolant_temperature_calc();
 real _max_fuel_temperature_calc();
 
 
+real _coolant_HeatCapacity(real T);
+real _coolant_Density(real T);
+real _coolant_Viscosity(real T);
+real _coolant_Conductivity(real T);
+real _graphite_Conductivity(real T);
 
 
 #endif
