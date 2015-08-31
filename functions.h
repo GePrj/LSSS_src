@@ -15,7 +15,7 @@ void _power_density_correction(cell_t c, Thread *t, real powerLevel);
 
 real _max_coolant_temperature_calc(Domain *domain);
 
-real _max_fuel_temperature_calc();
+real _max_fuel_temperature_calc(Domain *domain, real fuel_surface_Temperautre);
 
 
 real _coolant_HeatCapacity(real T);

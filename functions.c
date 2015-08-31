@@ -5,6 +5,13 @@
 
 #include "functions.h"
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * If you want more information to output, uncomment the
+ * following sentance.
+ *
+ * #define _DEBUG
+ *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 void _power_initialization(Domain *domain, real powerLevel)
 {
@@ -131,10 +138,93 @@ real _max_coolant_temperature_calc(Domain *domain)
 	return _max_coolant_temperature;
 }
 
-real _max_fuel_temperature_calc()
+real _max_fuel_temperature_calc(Domain *domain, real fuel_surface_Temperautre)
 {
+	Thread *t;
+	cell_t c;
+	real _fuel_surface_temperature;
+	real _fuel_core_temperature;
+	real _fuel_core_temperature_tmp;
+	real _max_fuel_temperature;
+	real _volume_power_rate;
+	real _fuel_ball_power;
+	real _porosity;
+	real _volume_fuel_ball;
+	real _raduis_1;
+	real _raduis_2;
+	int _i;
+	int _max_iteration;
+	real _rediual;
+	real _T;
+	real _fuel_conductivity;
 
-	return 0;
+#ifdef _DEBUG
+	FILE *file;
+	file = fopen("max_fuel_temperature_calc.dat", "at+");
+#endif
+
+	t = Lookup_Thread(domain, 17);
+	_fuel_surface_temperature = fuel_surface_Temperautre;
+	_fuel_core_temperature = fuel_surface_Temperautre;
+	_fuel_core_temperature_tmp = fuel_surface_Temperautre;
+	_max_fuel_temperature = fuel_surface_Temperautre;
+	_volume_power_rate = 0.;
+	_fuel_ball_power = 0.;
+	_porosity = 0.3194;
+	_volume_fuel_ball = 4./3.*3.1415926*pow(0.03,3);
+	_raduis_1 = 0.025;
+	_raduis_2 = 0.03;
+	_i = 0;
+	_max_iteration = 100;
+	_rediual = 0.5;
+	_T = 0.5*(_fuel_surface_temperature + _fuel_core_temperature);
+	_fuel_conductivity = 0.;
+
+	begin_c_loop(c,t)
+	{
+		_volume_power_rate = C_UDMI(c,t,0);
+		_fuel_ball_power = _volume_power_rate*_volume_fuel_ball/(1.-_porosity);
+
+		_i = 0;
+		_rediual = 0.5;
+		_fuel_core_temperature = fuel_surface_Temperautre;
+		while( _i<_max_iteration && _rediual > 0.01)
+		{
+			_fuel_core_temperature_tmp = _fuel_core_temperature;
+			_T = 0.5*(_fuel_surface_temperature + _fuel_core_temperature);
+			_fuel_conductivity = _graphite_Conductivity(_T);
+
+			_fuel_core_temperature = _fuel_surface_temperature + \
+				_fuel_ball_power/(4.*3.14159*_fuel_conductivity) * \
+				(1/_raduis_1 + 1/_raduis_2);
+			_fuel_core_temperature = _fuel_core_temperature    + \
+				_fuel_ball_power/(8.*3.14159*_fuel_conductivity) / \
+				_raduis_1;
+
+			_rediual = abs(_fuel_core_temperature - _fuel_core_temperature_tmp)/ \
+								 _fuel_core_temperature;
+			_i = _i + 1;
+		}
+
+#ifdef _DEBUG
+		fprintf(file, "This is file %s, line %d.\n", __FILE__, __LINE__);
+		fprintf(file, "iteration_number = %d |", _i);
+		fprintf(file, "_rediual = %f |", _rediual);
+		fprintf(file, "_fuel_ball_power= %f |", _fuel_ball_power);
+		fprintf(file, "_fuel_conductivity = %f \n", _fuel_conductivity);
+		fprintf(file, "_fuel_core_temperature = %f |",_fuel_core_temperature);
+		fprintf(file, "_fuel_core_temperature_tmp = %f \n\n", _fuel_core_temperature_tmp);
+#endif
+
+		if(_fuel_core_temperature > _max_fuel_temperature)
+			_max_fuel_temperature = _fuel_core_temperature;
+	}end_c_loop(c,t)
+
+#ifdef _DEBUG
+	fclose(file);
+#endif
+
+	return _max_fuel_temperature;
 }
 
 
